@@ -11,7 +11,7 @@ pipeline {
         stage('Checkout') {
             steps {
                 git branch: 'main',
-                    url: 'https://github.com/yourusername/shophoa.git'
+                    url: 'https://github.com/tierik-bjornson/shophoa.git'
             }
         }
 
