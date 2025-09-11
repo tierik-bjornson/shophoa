@@ -18,7 +18,10 @@ pipeline {
         stage('Build Docker Image') {
             steps {
                 script {
-                    docker.build("${IMAGE_NAME}:${IMAGE_TAG}")
+                    def buildTag = "${env.BUILD_NUMBER}"
+                    def latestTag = "latest"
+                    docker.build("${IMAGE_NAME}:${buildTag}")
+                    docker.build("${IMAGE_NAME}:${latestTag}")
                 }
             }
         }
