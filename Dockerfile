@@ -1,25 +1,22 @@
-FROM php:8.1-apache-bullseye AS build
+FROM composer:2 as builder
+WORKDIR /app
 
-RUN apt-get update && apt-get install -y --no-install-recommends \
-        libpng-dev \
-        libonig-dev \
-        libxml2-dev \
-        default-mysql-client \
-        git \
-        unzip \
-    && docker-php-ext-install mysqli pdo pdo_mysql \
-    && apt-get clean \
-    && rm -rf /var/lib/apt/lists/*
+COPY composer.json composer.lock ./
+RUN composer install --no-dev --optimize-autoloader --no-interaction
 
-FROM php:8.1-apache-bullseye-slim
+COPY . .
 
-COPY --from=build /usr/local/lib/php/extensions /usr/local/lib/php/extensions
-COPY --from=build /usr/local/etc/php /usr/local/etc/php
+FROM php:8.2-fpm-alpine
+WORKDIR /var/www/html
 
-RUN a2enmod rewrite
+COPY --from=builder /app/vendor /var/www/html/vendor
+COPY --from=builder /app/public /var/www/html/public
+COPY --from=builder /app/src /var/www/html/src
+COPY --from=builder /app/index.php /var/www/html/index.php
 
-COPY . /var/www/html/
-RUN chown -R www-data:www-data /var/www/html/
+RUN docker-php-ext-install pdo_mysql \
+    && chown -R www-data:www-data /var/www/html
 
-EXPOSE 80
-CMD ["apache2-foreground"]
+EXPOSE 9000
+CMD ["php-fpm"]
+
