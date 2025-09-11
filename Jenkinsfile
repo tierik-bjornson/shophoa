@@ -15,21 +15,21 @@ pipeline {
             }
         }
 
-       stage('OWASP Dependency Check') {
-            steps {
-                script {
-                  sh """
-                  docker run --rm \
-                  -v \$(pwd):/src \
-                  -v owasp-data:/usr/share/dependency-check/data \
-                  owasp/dependency-check:latest \
-                  --scan /src \
-                  --format ALL \
-                  --out /src
-                 """
-                }
-            }
-        }
+    //    stage('OWASP Dependency Check') {
+    //         steps {
+    //             script {
+    //               sh """
+    //               docker run --rm \
+    //               -v \$(pwd):/src \
+    //               -v owasp-data:/usr/share/dependency-check/data \
+    //               owasp/dependency-check:latest \
+    //               --scan /src \
+    //               --format ALL \
+    //               --out /src
+    //              """
+    //             }
+    //         }
+    //     }
 
         stage('Build Docker Image') {
             steps {
@@ -41,6 +41,26 @@ pipeline {
                 }
             }
         }
+
+        stage('Trivy Scan Docker Image') {
+            steps {
+               script {
+          
+            sh 'mkdir -p trivy-report'
+
+            sh """
+            docker run --rm -v /var/run/docker.sock:/var/run/docker.sock \
+                -v \$(pwd)/trivy-report:/report \
+                aquasec/trivy image ${IMAGE_NAME}:${BUILD_NUMBER} \
+                --format json \
+                --output /report/trivy-image-report.json
+            """
+
+            echo "Trivy image scan completed. Report saved in trivy-report/trivy-image-report.json"
+               }
+           }
+       }
+
 
         stage('Login to Docker Hub') {
             steps {
