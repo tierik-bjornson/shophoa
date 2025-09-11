@@ -68,24 +68,29 @@ pipeline {
         stage('Trivy Scan Docker Image') {
     steps {
         script {
-            sh "mkdir -p ${WORKSPACE}/trivy-report"
-            sh """
-             docker run --rm \
-  -v /var/run/docker.sock:/var/run/docker.sock \
-  -v ${WORKSPACE}/trivy-report:/report:Z \
-  aquasec/trivy image ${IMAGE_NAME}:${BUILD_NUMBER} \
-  --format json \
-  --output /report/trivy-image-report.json \
-  --exit-code 0 \
-  --severity CRITICAL,HIGH \
-  --scanners vuln
+            docker.image('aquasec/trivy:latest').inside('--entrypoint=""') {
+                sh """
+                    mkdir -p trivy-reports
+                    chmod -R 777 trivy-reports
 
-            """
-            sh "echo '==== Trivy JSON Report ===='"
-            sh "cat ${WORKSPACE}/trivy-report/trivy-image-report.json"
-            archiveArtifacts artifacts: 'trivy-report/**', allowEmptyArchive: true
+                    # Scan image, chỉ lọc HIGH và CRITICAL, xuất JSON
+                    trivy image --format json --severity HIGH,CRITICAL --output trivy-reports/backend.json ${IMAGE_NAME}:${BUILD_NUMBER} || { echo "Scan failed"; exit 1; }
+
+                    # Convert JSON sang HTML report
+                    # Truyền template HTML có sẵn (html.tpl)
+                    trivy convert --format template --template @trivy-reports/html.tpl --output trivy-reports/backend.html trivy-reports/backend.json || { echo "Convert to HTML failed"; exit 1; }
+                """
+
+                // In ra console report JSON để xem nhanh
+                sh "cat trivy-reports/backend.json"
+
+                // Archive cả hai report
+                archiveArtifacts artifacts: 'trivy-reports/backend.*', fingerprint: true
+            }
         }
-    }}
+    }
+}
+
 
 
 
