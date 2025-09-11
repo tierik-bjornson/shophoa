@@ -19,6 +19,7 @@ pipeline {
         steps {
                script {
                sh """
+                mkdir -p dependency-check-report
                docker run --rm \
                 -v \$(pwd):/src \
                 owasp/dependency-check:latest \
