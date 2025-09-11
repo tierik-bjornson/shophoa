@@ -59,7 +59,7 @@ pipeline {
             sh "cat ${WORKSPACE}/trivy-report/trivy-image-report.json"
             archiveArtifacts artifacts: 'trivy-report/**', allowEmptyArchive: true
         }
-    }
+    }}
 
 
         stage('Login to Docker Hub') {
