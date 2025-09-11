@@ -1,12 +1,14 @@
 <?php
-    $servername = "localhost";
-    $username = "root";
-    $password = "";
-    $dbname = "vuthibacdk12cntt2";
+    $host = getenv('DB_HOST');       // mysql-service
+$user = getenv('DB_USERNAME');   // từ Secret
+$pass = getenv('DB_PASSWORD');   // từ Secret
+$db   = getenv('DB_DATABASE');   // từ Secret
+
+$conn = mysqli_connect($host, $user, $pass, $db);
 
     //B1: Create connetion
     
-    $conn = mysqli_connect($servername, $username, $password, $dbname);
+
     //check connection
     
     if (!$conn) {

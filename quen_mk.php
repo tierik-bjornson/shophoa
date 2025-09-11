@@ -2,13 +2,12 @@
 session_start();
 
 function checkemail($tendangnhap,$email){
-    $servername = "localhost";
-    $username = "root";
-    $password = "";
-    $dbname = "vuthibacdk12cntt2";
+    $host = getenv('DB_HOST');       // mysql-service
+$user = getenv('DB_USERNAME');   // từ Secret
+$pass = getenv('DB_PASSWORD');   // từ Secret
+$db   = getenv('DB_DATABASE');   // từ Secret
 
-    //B1: Tạo kết nối
-    $conn = mysqli_connect($servername, $username, $password, $dbname);
+$conn = mysqli_connect($host, $user, $pass, $db);
 
     //Kiểm tra kết nối
     if (!$conn) {

@@ -6,14 +6,15 @@
  
  ?>
 <?php
-    $servername = "localhost";
-    $username = "root";
-    $password = "";
-    $dbname = "vuthibacdk12cntt2";
+    $host = getenv('DB_HOST');       
+    $user = getenv('DB_USERNAME');   
+    $pass = getenv('DB_PASSWORD');   
+    $db   = getenv('DB_DATABASE');   
+
+    $conn = mysqli_connect($host, $user, $pass, $db);
 
     //B1: Create connetion
     
-    $conn = mysqli_connect($servername, $username, $password, $dbname);
     //check connection
     
     if (!$conn) {
