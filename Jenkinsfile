@@ -70,13 +70,16 @@ pipeline {
         script {
             sh "mkdir -p ${WORKSPACE}/trivy-report"
             sh """
-            docker run --rm -v /var/run/docker.sock:/var/run/docker.sock \
-                -v ${WORKSPACE}/trivy-report:/report \
-                aquasec/trivy image ${IMAGE_NAME}:${BUILD_NUMBER} \
-                --format json \
-                --output /report/trivy-image-report.json \
-                --exit-code 0 \
-                --severity CRITICAL,HIGH
+             docker run --rm \
+  -v /var/run/docker.sock:/var/run/docker.sock \
+  -v ${WORKSPACE}/trivy-report:/report:Z \
+  aquasec/trivy image ${IMAGE_NAME}:${BUILD_NUMBER} \
+  --format json \
+  --output /report/trivy-image-report.json \
+  --exit-code 0 \
+  --severity CRITICAL,HIGH \
+  --scanners vuln
+
             """
             sh "echo '==== Trivy JSON Report ===='"
             sh "cat ${WORKSPACE}/trivy-report/trivy-image-report.json"
