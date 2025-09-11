@@ -43,23 +43,29 @@ pipeline {
         }
 
         stage('Trivy Scan Docker Image') {
-            steps {
-               script {
-          
-            sh 'mkdir -p trivy-report'
+    steps {
+        script {
+            // Tạo thư mục report trong workspace Jenkins
+            sh "mkdir -p ${WORKSPACE}/trivy-report"
 
+            // Chạy Trivy scan
             sh """
             docker run --rm -v /var/run/docker.sock:/var/run/docker.sock \
-                -v \$(pwd)/trivy-report:/report \
+                -v ${WORKSPACE}/trivy-report:/report \
                 aquasec/trivy image ${IMAGE_NAME}:${BUILD_NUMBER} \
                 --format json \
                 --output /report/trivy-image-report.json
             """
 
-            echo "Trivy image scan completed. Report saved in trivy-report/trivy-image-report.json"
-               }
-           }
-       }
+            // In ra console
+            sh "cat ${WORKSPACE}/trivy-report/trivy-image-report.json"
+
+            // Archive report
+            archiveArtifacts artifacts: 'trivy-report/**', allowEmptyArchive: true
+        }
+    }
+}
+
 
 
         stage('Login to Docker Hub') {
