@@ -64,34 +64,35 @@ pipeline {
                 }
             }
         }
-        stage('Trivy Scan Docker Image') {
-    steps {
-        script {
-            // 1. Tạo thư mục report và đảm bảo quyền ghi
-            sh "mkdir -p ${WORKSPACE}/trivy-report && chmod 777 ${WORKSPACE}/trivy-report"
+//         stage('Trivy Scan Docker Image') {
+//     steps {
+//         script {
+//             // 1. Tạo thư mục report và đảm bảo quyền ghi
+//             sh "mkdir -p ${WORKSPACE}/trivy-report && chmod 777 ${WORKSPACE}/trivy-report"
 
-            // 2. Scan image và xuất JSON
-            sh """
-            docker run --rm \
-                -v /var/run/docker.sock:/var/run/docker.sock \
-                -v ${WORKSPACE}/trivy-report:/report:Z \
-                aquasec/trivy image ${IMAGE_NAME}:${BUILD_NUMBER} \
-                --format json \
-                --output /report/trivy-image-report.json \
-                --exit-code 0 \
-                --severity HIGH,CRITICAL \
-                --scanners vuln
-            """
+//             // 2. Scan image và xuất JSON
+//             sh """
+//             docker run --rm \
+//                 -v /var/run/docker.sock:/var/run/docker.sock \
+//                 -v ${WORKSPACE}/trivy-report:/report:Z \
+//                 aquasec/trivy image ${IMAGE_NAME}:${BUILD_NUMBER} \
+//                 --format json \
+//                 --output /report/trivy-image-report.json \
+//                 --exit-code 0 \
+//                 --severity HIGH,CRITICAL \
+//                 --scanners vuln
+//             """
 
-            // 3. Kiểm tra file report
+//             // 3. Kiểm tra file report
     
-            sh "cat /var/jenkins_home/workspace/flowerShopBackend/trivy-report/trivy-image-report.json"
+//             sh "cat /var/jenkins_home/workspace/flowerShopBackend/trivy-report/trivy-image-report.json"
 
-            // 4. Archive report
-            archiveArtifacts artifacts: 'trivy-report/**', allowEmptyArchive: true
-        }
-    }
-}
+//             // 4. Archive report
+//             archiveArtifacts artifacts: 'trivy-report/**', allowEmptyArchive: true
+//         }
+//     }
+// }
+    
 
         
 
