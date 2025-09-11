@@ -84,8 +84,8 @@ pipeline {
             """
 
             // 3. Kiểm tra file report
-            sh "ls -l ${WORKSPACE}/trivy-report"
-            sh "cat ${WORKSPACE}/trivy-report/trivy-image-report.json"
+    
+            sh "cat /var/jenkins_home/workspace/flowerShopBackend/trivy-report/trivy-image-report.json"
 
             // 4. Archive report
             archiveArtifacts artifacts: 'trivy-report/**', allowEmptyArchive: true
