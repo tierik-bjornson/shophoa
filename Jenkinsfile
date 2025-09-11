@@ -18,15 +18,14 @@ pipeline {
        stage('OWASP Dependency Check') {
             steps {
                 script {
-                  sh 'mkdir -p dependency-check-report'
                   sh """
                   docker run --rm \
                   -v \$(pwd):/src \
                   -v owasp-data:/usr/share/dependency-check/data \
                   owasp/dependency-check:latest \
-                  --scan /src/vendor \
+                  --scan /src \
                   --format ALL \
-                  --out /src/dependency-check-report
+                  --out /src
                  """
                 }
             }
