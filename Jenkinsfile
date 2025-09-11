@@ -64,29 +64,36 @@ pipeline {
                 }
             }
         }
-
         stage('Trivy Scan Docker Image') {
     steps {
         script {
-            sh "mkdir -p ${WORKSPACE}/trivy-report"
+            // 1. Tạo thư mục report và đảm bảo quyền ghi
+            sh "mkdir -p ${WORKSPACE}/trivy-report && chmod 777 ${WORKSPACE}/trivy-report"
 
-            // Scan và xuất JSON trực tiếp, chỉ quan tâm High & Critical
+            // 2. Scan image và xuất JSON
             sh """
-            docker run --rm -v /var/run/docker.sock:/var/run/docker.sock \
-                -v ${WORKSPACE}/trivy-report:/report \
+            docker run --rm \
+                -v /var/run/docker.sock:/var/run/docker.sock \
+                -v ${WORKSPACE}/trivy-report:/report:Z \
                 aquasec/trivy image ${IMAGE_NAME}:${BUILD_NUMBER} \
-                --format json --output /report/trivy-image-report.json \
-                --exit-code 0 --severity HIGH,CRITICAL --scanners vuln
+                --format json \
+                --output /report/trivy-image-report.json \
+                --exit-code 0 \
+                --severity HIGH,CRITICAL \
+                --scanners vuln
             """
 
-            // In ra console
+            // 3. Kiểm tra file report
+            sh "ls -l ${WORKSPACE}/trivy-report"
             sh "cat ${WORKSPACE}/trivy-report/trivy-image-report.json"
 
-            // Lưu report Jenkins
+            // 4. Archive report
             archiveArtifacts artifacts: 'trivy-report/**', allowEmptyArchive: true
         }
     }
 }
+
+        
 
 
 
