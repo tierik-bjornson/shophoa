@@ -98,28 +98,53 @@ pipeline {
 //         }
 //     }
 // }
-     stage('Security Scan') {
+     stage('Trigger Acunetix Scan') {
             steps {
                 script {
-                    echo "Triggering Acunetix scan via API..."
-                    sh """
-                    curl -k -X POST ${ACX_SERVER_URL}/api/v1/scans \\
-                        -H "X-Auth: ${ACX_API_TOKEN}" \\
-                        -H "Content-Type: application/json" \\
-                        -d '{
-                              "target_id": "${ACX_TARGET_ID}",
-                              "schedule": {
-                                "disable": false,
-                                "start_date": null,
-                                "time_sensitive": false
-                              }
-                            }'
-                    """
+                    echo "Triggering Acunetix scan..."
+    
+                    def scanResponse = sh(
+                        script: """
+                        curl -s -k -X POST ${ACX_SERVER_URL}/api/v1/scans \\
+                            -H "X-Auth: ${ACX_API_TOKEN}" \\
+                            -H "Content-Type: application/json" \\
+                            -d '{
+                                  "target_id": "${ACX_TARGET_ID}",
+                                  "schedule": {"disable": false}
+                                }'
+                        """,
+                        returnStdout: true
+                    ).trim()
+                    echo "Acunetix scan triggered: ${scanResponse}"
+
+                    def json = readJSON text: scanResponse
+                    env.ACX_SCAN_ID = json.scan_id
                 }
             }
         }
 
-    
+        stage('Fetch Acunetix Report (Optional)') {
+            steps {
+                script {
+                    if (env.ACX_SCAN_ID) {
+                        echo "Fetching Acunetix scan report..."
+                        def report = sh(
+                            script: """
+                            curl -s -k -X GET ${ACX_SERVER_URL}/api/v1/reports/${env.ACX_SCAN_ID}/export/json \\
+                                -H "X-Auth: ${ACX_API_TOKEN}" \\
+                                -H "Content-Type: application/json"
+                            """,
+                            returnStdout: true
+                        ).trim()
+                        writeFile file: "acunetix-report-${env.ACX_SCAN_ID}.json", text: report
+                        archiveArtifacts artifacts: "acunetix-report-${env.ACX_SCAN_ID}.json", allowEmptyArchive: true
+                        echo "Acunetix report saved and archived."
+                    } else {
+                        echo "No scan_id found, skipping report fetch."
+                    }
+                }
+            }
+        }
 
 
     }
