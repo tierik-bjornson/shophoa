@@ -93,10 +93,21 @@ pipeline {
 //     }
 // }
     
-
-        
-
-
+        stage('Acunetix Scan') {
+    steps {
+        script {
+            echo "Triggering Acunetix scan via plugin..."
+            acunetixScan(
+                target: 'http://34.194.113.231:30080',
+                profile: 'Full Scan',
+                failBuildOnHigh: true,
+                failBuildOnMedium: false,
+                failBuildOnLow: false
+            )
+            echo "Acunetix scan triggered successfully."
+        }
+    }
+}
 
 
 
