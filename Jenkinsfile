@@ -6,9 +6,11 @@ pipeline {
         IMAGE_NAME = 'tien2k3/shophoa' 
         IMAGE_TAG = "latest"
 
-        ACX_API_TOKEN = credentials('acunetix-credentials')  
         ACX_SERVER_URL = 'https://10.10.100.100:3443'
-        ACX_TARGET_ID = 'a6a0627d-831c-4db6-b1bb-47835757bb23' 
+        ACX_API_TOKEN  = credentials('acunetix-credentials') 
+        ACX_TARGET_ID  = 'a6a0627d-831c-4db6-b1bb-47835757bb23' 
+
+      
     }
 
     stages {
@@ -96,21 +98,23 @@ pipeline {
 //         }
 //     }
 // }
-    stage('Security Scan') {
+     stage('Security Scan') {
             steps {
                 script {
-                    echo "Triggering Acunetix 360 scan..."
-                    step([
-                        $class: 'ACXScanBuilder',
-                        ncApiToken: "${ACX_API_TOKEN}",
-                        acxServerURL: "${ACX_SERVER_URL}",
-                        ncWebsiteId: "${ACX_TARGET_ID}",
-                        ncScanType: 'FullWithPrimaryProfile', 
-                        stopScan: true,
-                        repTemp: 'Executive Summary',
-                        threat: 'Critical'
-                    ])
-                    echo "Acunetix scan triggered successfully."
+                    echo "Triggering Acunetix scan via API..."
+                    sh """
+                    curl -k -X POST ${ACX_SERVER_URL}/api/v1/scans \\
+                        -H "X-Auth: ${ACX_API_TOKEN}" \\
+                        -H "Content-Type: application/json" \\
+                        -d '{
+                              "target_id": "${ACX_TARGET_ID}",
+                              "schedule": {
+                                "disable": false,
+                                "start_date": null,
+                                "time_sensitive": false
+                              }
+                            }'
+                    """
                 }
             }
         }
