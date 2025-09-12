@@ -123,28 +123,7 @@ pipeline {
             }
         }
 
-        stage('Fetch Acunetix Report (Optional)') {
-            steps {
-                script {
-                    if (env.ACX_SCAN_ID) {
-                        echo "Fetching Acunetix scan report..."
-                        def report = sh(
-                            script: """
-                            curl -s -k -X GET ${ACX_SERVER_URL}/api/v1/reports/${env.ACX_SCAN_ID}/export/json \\
-                                -H "X-Auth: ${ACX_API_TOKEN}" \\
-                                -H "Content-Type: application/json"
-                            """,
-                            returnStdout: true
-                        ).trim()
-                        writeFile file: "acunetix-report-${env.ACX_SCAN_ID}.json", text: report
-                        archiveArtifacts artifacts: "acunetix-report-${env.ACX_SCAN_ID}.json", allowEmptyArchive: true
-                        echo "Acunetix report saved and archived."
-                    } else {
-                        echo "No scan_id found, skipping report fetch."
-                    }
-                }
-            }
-        }
+       
 
 
     }
