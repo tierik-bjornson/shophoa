@@ -97,13 +97,14 @@ pipeline {
     steps {
         script {
             echo "Triggering Acunetix scan via plugin..."
-            acunetixScan(
-                target: 'http://34.194.113.231:30080',
-                profile: 'Full Scan',
-                failBuildOnHigh: true,
-                failBuildOnMedium: false,
-                failBuildOnLow: false
-            )
+            acunetix360Scan(
+            apiToken: credentials('acunetix-credentials'),
+            targetId: 'a6a0627d-831c-4db6-b1bb-47835757bb23', 
+            scanType: 'FullWithPrimaryProfile',               
+            failOnHigh: true,                                
+            failOnMedium: false,
+            failOnLow: false
+        )
             echo "Acunetix scan triggered successfully."
         }
     }
