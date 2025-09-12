@@ -98,31 +98,24 @@ pipeline {
 //         }
 //     }
 // }
-     stage('Trigger Acunetix Scan') {
+    stages {
+        stage('Trigger Acunetix Scan') {
             steps {
                 script {
-                    echo "Triggering Acunetix scan..."
-    
-                    def scanResponse = sh(
-                        script: """
-                        curl -s -k -X POST ${ACX_SERVER_URL}/api/v1/scans \\
-                            -H "X-Auth: ${ACX_API_TOKEN}" \\
-                            -H "Content-Type: application/json" \\
-                            -d '{
-                                  "target_id": "${ACX_TARGET_ID}",
-                                  "schedule": {"disable": false}
-                                }'
-                        """,
-                        returnStdout: true
-                    ).trim()
-                    echo "Acunetix scan triggered: ${scanResponse}"
-
-                    def json = readJSON text: scanResponse
-                    env.ACX_SCAN_ID = json.scan_id
+                    sh """
+                    curl -s -k -X POST https://security.vissoft.vn/api/v1/scans \
+                      -H "X-Auth: $ACX_API_TOKEN" \
+                      -H "Content-Type: application/json" \
+                      -d '{
+                            "target_id": "a6a0627d-831c-4db6-b1bb-47835757bb23",
+                            "schedule": {"disable": false}
+                          }'
+                    """
+                    echo "Acunetix scan triggered successfully. The scan will run in background."
                 }
             }
         }
-
+    }
        
 
 
