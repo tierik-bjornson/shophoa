@@ -101,7 +101,7 @@ pipeline {
                 script {
                     echo "Triggering Acunetix 360 scan..."
                     step([
-                      
+                        $class: 'ACXScanBuilder',
                         ncApiToken: "${ACX_API_TOKEN}",
                         acxServerURL: "${ACX_SERVER_URL}",
                         ncWebsiteId: "${ACX_TARGET_ID}",
