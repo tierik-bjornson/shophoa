@@ -99,22 +99,26 @@ pipeline {
 //     }
 // }
     
-        stage('Trigger Acunetix Scan') {
-            steps {
-                script {
-                    sh """
-                    curl -s -k -X POST https://security.vissoft.vn/api/v1/scans \
-                      -H "X-Auth: $ACX_API_TOKEN" \
-                      -H "Content-Type: application/json" \
-                      -d '{
-                            "target_id": "a6a0627d-831c-4db6-b1bb-47835757bb23",
-                            "schedule": {"disable": false}
-                          }'
-                    """
-                    echo "Acunetix scan triggered successfully. The scan will run in background."
-                }
-            }
+    stage('Trigger Acunetix Scan') {
+    steps {
+        script {
+            sh '''
+            curl -vk -X POST "https://security.vissoft.vn/api/v1/scans" \
+              -H "X-Auth: ${ACX_API_TOKEN}" \
+              -H "Content-Type: application/json" \
+              -d '{
+                    "target_id": "a6a0627d-831c-4db6-b1bb-47835757bb23",
+                    "schedule": {
+                      "disable": false,
+                      "start_date": null,
+                      "time_sensitive": false
+                    }
+                  }'
+            '''
         }
+    }
+}
+
     
        
 
