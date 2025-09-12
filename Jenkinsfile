@@ -6,9 +6,7 @@ pipeline {
         IMAGE_NAME = 'tien2k3/shophoa' 
         IMAGE_TAG = "latest"
 
-        ACX_SERVER_URL = 'https://security.vissoft.vn'
-        ACX_API_TOKEN  = credentials('acunetix-credentials') 
-        ACX_TARGET_ID  = 'a6a0627d-831c-4db6-b1bb-47835757bb23' 
+    
 
       
     }
@@ -99,31 +97,30 @@ pipeline {
 //     }
 // }
     
-    stage('Trigger Acunetix Scan') {
-    steps {
-        script {
-            sh '''
-            curl -vk -X POST "https://security.vissoft.vn/api/v1/scans" \
-              -H "X-Auth: ${ACX_API_TOKEN}" \
-              -H "Content-Type: application/json" \
-              -d '{
-                    "target_id": "a6a0627d-831c-4db6-b1bb-47835757bb23",
-                    "schedule": {
-                      "disable": false,
-                      "start_date": null,
-                      "time_sensitive": false
-                    }
-                  }'
-            '''
+    stage('Run Acunetix Scan') {
+            steps {
+                script {
+                   
+                    build job: 'acunetix-scan', wait: true
+                }
+            }
         }
+    
+    
+    
+    
+    
+    
+    
+    
+    
     }
-}
 
     
        
 
 
-    }
+    
 
     post {
         always {
