@@ -98,7 +98,7 @@ pipeline {
 //         }
 //     }
 // }
-    stages {
+    
         stage('Trigger Acunetix Scan') {
             steps {
                 script {
