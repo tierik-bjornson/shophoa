@@ -5,6 +5,10 @@ pipeline {
         DOCKERHUB_CREDENTIALS = 'dockerhub-credentials'  
         IMAGE_NAME = 'tien2k3/shophoa' 
         IMAGE_TAG = "latest"
+
+        ACX_API_TOKEN = credentials('acunetix-credentials')  
+        ACX_SERVER_URL = 'https://10.10.100.100:3443'
+        ACX_TARGET_ID = 'a6a0627d-831c-4db6-b1bb-47835757bb23' 
     }
 
     stages {
@@ -92,24 +96,26 @@ pipeline {
 //         }
 //     }
 // }
-    
-        stage('Acunetix Scan') {
-    steps {
-        script {
-            echo "Triggering Acunetix scan via plugin..."
-            acunetix360Scan(
-            apiToken: credentials('acunetix-credentials'),
-            targetId: 'a6a0627d-831c-4db6-b1bb-47835757bb23', 
-            scanType: 'FullWithPrimaryProfile',               
-            failOnHigh: true,                                
-            failOnMedium: false,
-            failOnLow: false
-        )
-            echo "Acunetix scan triggered successfully."
+    stage('Security Scan') {
+            steps {
+                script {
+                    echo "Triggering Acunetix 360 scan..."
+                    step([
+                        $class: 'ACXScanBuilder',
+                        ncApiToken: "${ACX_API_TOKEN}",
+                        acxServerURL: "${ACX_SERVER_URL}",
+                        ncWebsiteId: "${ACX_TARGET_ID}",
+                        ncScanType: 'FullWithPrimaryProfile', 
+                        stopScan: true,
+                        repTemp: 'Executive Summary',
+                        threat: 'Critical'
+                    ])
+                    echo "Acunetix scan triggered successfully."
+                }
+            }
         }
-    }
-}
 
+    
 
 
     }
