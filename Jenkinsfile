@@ -6,7 +6,7 @@ pipeline {
         IMAGE_NAME = 'tien2k3/shophoa' 
         IMAGE_TAG = "latest"
 
-        ACX_SERVER_URL = 'https://security.vissoft.vn/app'
+        ACX_SERVER_URL = 'https://security.vissoft.vn'
         ACX_API_TOKEN  = credentials('acunetix-credentials') 
         ACX_TARGET_ID  = 'a6a0627d-831c-4db6-b1bb-47835757bb23' 
 
