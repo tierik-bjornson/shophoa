@@ -18,21 +18,24 @@ pipeline {
                     url: 'https://github.com/tierik-bjornson/shophoa.git'
             }
         }
+        
+        stage('OWASP Dependency Check') {
+            steps {
+                script {
+                    dependencyCheckAnalyzer scanpath: '.', 
+                                             outdir: 'dependency-check-report',
+                                             includeHtmlReports: true,
+                                             includeJsonReports: true
+                }
+            }
+        }
 
-       stage('OWASP Dependency Check') {
-    steps {
-        dependencyCheck additionalArguments: '--format ALL --failOnCVSS 7',
-                        odcInstallation: 'Default',
-                        outdir: 'dependency-check-report',
-                        scanpath: '.'
-    }
-}
-
-stage('Publish OWASP Report') {
-    steps {
-        dependencyCheckPublisher pattern: 'dependency-check-report/dependency-check-report.xml'
-    }
-}
+        stage('Publish OWASP Report') {
+            steps {
+                dependencyCheckPublisher pattern: 'dependency-check-report/dependency-check-report.xml'
+            }
+        }
+       
 
         stage('Build Docker Image') {
             steps {
