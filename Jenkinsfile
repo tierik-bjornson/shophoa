@@ -19,22 +19,12 @@ pipeline {
             }
         }
         
-        stage('OWASP Dependency Check') {
+        stage('Run OWASP Scan') {
             steps {
-                script {
-                    dependencyCheckAnalyzer scanpath: '.', 
-                                             outdir: 'dependency-check-report',
-                                             includeHtmlReports: true,
-                                             includeJsonReports: true
-                }
+                build job: 'flowerOwsapCheck', wait: true
             }
         }
 
-        stage('Publish OWASP Report') {
-            steps {
-                dependencyCheckPublisher pattern: 'dependency-check-report/dependency-check-report.xml'
-            }
-        }
        
 
         stage('Build Docker Image') {
