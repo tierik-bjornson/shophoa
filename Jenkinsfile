@@ -20,20 +20,19 @@ pipeline {
         }
 
        stage('OWASP Dependency Check') {
-            steps {
-                script {
-                  sh """
-                  docker run --rm \
-                  -v \$(pwd):/src \
-                  -v owasp-data:/usr/share/dependency-check/data \
-                  owasp/dependency-check:latest \
-                  --scan /src \
-                  --format ALL \
-                  --out /src
-                 """
-                }
-            }
-        }
+    steps {
+        dependencyCheck additionalArguments: '--format ALL --failOnCVSS 7',
+                        odcInstallation: 'Default',
+                        outdir: 'dependency-check-report',
+                        scanpath: '.'
+    }
+}
+
+stage('Publish OWASP Report') {
+    steps {
+        dependencyCheckPublisher pattern: 'dependency-check-report/dependency-check-report.xml'
+    }
+}
 
         stage('Build Docker Image') {
             steps {
