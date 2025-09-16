@@ -107,7 +107,7 @@ pipeline {
                     sh '''
                     # Chạy Petstore làm target test
                     docker rm -f petstore || true
-                    docker run -d --name petstore -p swaggerapi/petstore
+                    docker run -d --name petstore -p 8081:8080 swaggerapi/petstore
 
                     # Chạy Nessus WAS Scanner
                     docker rm -f nessus-was || true
