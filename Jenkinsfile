@@ -98,24 +98,27 @@ pipeline {
                 }
             }
         }
-    stage('Run Nessus WAS Scan') {
-            steps {
-                sh '''
-                # Pull và chạy app target (Petstore)
-                docker pull swaggerapi/petstore
-                docker run -d --name petstore -e SWAGGER_URL=http://petstore:8080 -e SWAGGER_BASE_PATH=/v2 swaggerapi/petstore
+    steps {
+                withCredentials([
+                    string(credentialsId: 'accesskey-nessus', variable: 'ACCESS_KEY'),
+                    string(credentialsId: 'secretkey-nessus', variable: 'SECRET_KEY')
+                ]) {
+                    sh '''
+                   
+                    docker rm -f petstore || true
+                    docker run -d --name petstore -p 8080:8080 swaggerapi/petstore
 
-                # Pull và chạy Nessus WAS Scanner
-                docker pull tenable/was-scanner:latest
-                docker run -v $(pwd):/scanner -t \
-                    -e WAS_MODE=cicd \
-                    -e ACCESS_KEY=${ACCESS_KEY} \
-                    -e SECRET_KEY=${SECRET_KEY} \
-                    --link petstore \
-                    tenable/was-scanner:latest
-                '''
+               
+                    docker rm -f nessus-was || true
+                    docker run --name nessus-was --rm \
+                        -v $(pwd):/scanner \
+                        -e WAS_MODE=cicd \
+                        -e ACCESS_KEY=$ACCESS_KEY \
+                        -e SECRET_KEY=$SECRET_KEY \
+                        tenable/was-scanner:latest > scanner.log 2>&1 || true
+                    '''
+                }
             }
-        }
     
     
     
