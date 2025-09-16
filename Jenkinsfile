@@ -53,15 +53,15 @@ pipeline {
         stage('Run Nessus WAS Scan') {
             steps {
                 script {
-                    // Tạo thư mục scanner trong workspace
+                
                     sh "mkdir -p ${WORKSPACE}/scanner && chmod -R 777 ${WORKSPACE}/scanner"
 
-                    // Run Nessus WAS scan trong Docker
+                
                     withCredentials([
                         string(credentialsId: 'accesskey-nessus', variable: 'ACCESS_KEY'),
                         string(credentialsId: 'secretkey-nessus', variable: 'SECRET_KEY')
                     ]) {
-                        // returnStatus: true để pipeline không fail nếu scanner exit code ≠ 0
+                      
                         def status = sh(script: """
                             docker rm -f nessus-was || true
                             docker run --name nessus-was \\
