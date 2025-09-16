@@ -112,11 +112,12 @@ pipeline {
                     # Chạy Nessus WAS Scanner
                     docker rm -f nessus-was || true
                     docker run --name nessus-was --rm \
-                        -v $(pwd):/scanner \
+                        -v ${WORKSPACE}:/scanner \
                         -e WAS_MODE=cicd \
                         -e ACCESS_KEY=$ACCESS_KEY \
                         -e SECRET_KEY=$SECRET_KEY \
-                        tenable/was-scanner:latest > scanner.log 2>&1 || true
+                        tenable/was-scanner:latest \
+                        > ${WORKSPACE}/scanner.log 2>&1 || true
                     '''
                 }
             }
