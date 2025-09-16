@@ -51,45 +51,50 @@ pipeline {
         }
 
         stage('Run Nessus WAS Scan') {
-    steps {
-        script {
-            // Tạo thư mục scanner trong workspace
-            sh "mkdir -p ${WORKSPACE}/scanner && chmod -R 777 ${WORKSPACE}/scanner"
+            steps {
+                script {
+                    // Tạo thư mục scanner trong workspace
+                    sh "mkdir -p ${WORKSPACE}/scanner && chmod -R 777 ${WORKSPACE}/scanner"
 
-            withCredentials([
-                string(credentialsId: 'accesskey-nessus', variable: 'ACCESS_KEY'),
-                string(credentialsId: 'secretkey-nessus', variable: 'SECRET_KEY')
-            ]) {
-                sh """
-                docker rm -f nessus-was || true
-                docker run --name nessus-was \\
-                    -v ${WORKSPACE}/scanner:/scanner \\
-                    -e WAS_MODE=cicd \\
-                    -e ACCESS_KEY=$ACCESS_KEY \\
-                    -e SECRET_KEY=$SECRET_KEY \\
-                    -e WAS_TARGET_URL=http://34.194.113.231:30080/ \\
-                    -e WAS_OUTPUT=/scanner/tenable_was_scan.html \\
-                    tenable/was-scanner:latest > ${WORKSPACE}/scanner/scanner.log 2>&1
+                    // Run Nessus WAS scan trong Docker
+                    withCredentials([
+                        string(credentialsId: 'accesskey-nessus', variable: 'ACCESS_KEY'),
+                        string(credentialsId: 'secretkey-nessus', variable: 'SECRET_KEY')
+                    ]) {
+                        // returnStatus: true để pipeline không fail nếu scanner exit code ≠ 0
+                        def status = sh(script: """
+                            docker rm -f nessus-was || true
+                            docker run --name nessus-was \\
+                                -v ${WORKSPACE}/scanner:/scanner \\
+                                -e WAS_MODE=cicd \\
+                                -e ACCESS_KEY=\$ACCESS_KEY \\
+                                -e SECRET_KEY=\$SECRET_KEY \\
+                                -e WAS_TARGET_URL=http://34.194.113.231:30080/ \\
+                                -e WAS_OUTPUT=/scanner/tenable_was_scan.html \\
+                                tenable/was-scanner:latest > ${WORKSPACE}/scanner/scanner.log 2>&1
+                        """, returnStatus: true)
 
-                cat ${WORKSPACE}/scanner/scanner.log || true
-                ls -lh ${WORKSPACE}/scanner/tenable_was_scan.html || true
-                """
+                        echo "[INFO] Nessus WAS scan finished with exit code: ${status}"
+                        sh "cat ${WORKSPACE}/scanner/scanner.log || true"
+                        sh "ls -lh ${WORKSPACE}/scanner/tenable_was_scan.html || true"
+                    }
+                }
             }
         }
-    }
-}
     }
 
     post {
         always {
-            archiveArtifacts artifacts: '*.log', allowEmptyArchive: true
-            archiveArtifacts artifacts: 'tenable_was_scan.html', allowEmptyArchive: true
+            // Archive logs và report
+            archiveArtifacts artifacts: 'scanner/scanner.log', allowEmptyArchive: true
+            archiveArtifacts artifacts: 'scanner/tenable_was_scan.html', allowEmptyArchive: true
 
+            // Publish HTML report
             publishHTML(target: [
                 allowMissing: true,
                 alwaysLinkToLastBuild: true,
                 keepAll: true,
-                reportDir: "${WORKSPACE}",
+                reportDir: 'scanner',
                 reportFiles: 'tenable_was_scan.html',
                 reportName: 'WAS Report'
             ])
