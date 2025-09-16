@@ -135,14 +135,25 @@ pipeline {
 
     post {
         always {
-            sh '''
-            docker rm $(docker stop $(docker ps -a -q --filter ancestor="tenable/was-scanner:latest" --format="{{.ID}}")) || true
-            docker rm $(docker stop $(docker ps -a -q --filter ancestor="swaggerapi/petstore" --format="{{.ID}}")) || true
-            docker system prune -f --volumes
-            '''
-            
-            archiveArtifacts 'scanner.log'
-            publishHTML([allowMissing: false, alwaysLinkToLastBuild: false, keepAll: true, reportDir: '', reportFiles: 'tenable_was_scan.html', reportName: 'WAS Report'])
+            script {
+                sh '''
+                docker rm -f petstore || true
+                docker rm -f nessus-was || true
+                docker system prune -f --volumes
+                '''
+            }
+
+            archiveArtifacts artifacts: 'scanner.log', allowEmptyArchive: true
+
+            publishHTML(target: [
+                allowMissing: true,
+                alwaysLinkToLastBuild: false,
+                keepAll: true,
+                reportDir: '.',
+                reportFiles: 'tenable_was_scan.html',
+                reportName: 'WAS Report'
+            ])
+
             
 
             cleanWs()
