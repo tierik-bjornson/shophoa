@@ -85,11 +85,11 @@ pipeline {
 
     post {
         always {
-            // Archive logs và report
+           
             archiveArtifacts artifacts: 'scanner/scanner.log', allowEmptyArchive: true
             archiveArtifacts artifacts: 'scanner/tenable_was_scan.html', allowEmptyArchive: true
 
-            // Publish HTML report
+            
             publishHTML(target: [
                 allowMissing: true,
                 alwaysLinkToLastBuild: true,
