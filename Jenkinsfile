@@ -99,29 +99,32 @@ pipeline {
             }
         }
     stage('Run Nessus WAS Scan') {
-            steps {
-                withCredentials([
-                    string(credentialsId: 'accesskey-nessus', variable: 'ACCESS_KEY'),
-                    string(credentialsId: 'secretkey-nessus', variable: 'SECRET_KEY')
-                ]) {
-                    sh '''
-                    # Chạy Petstore làm target test
-                    docker rm -f petstore || true
-                    docker run -d --name petstore -p 8081:8080 swaggerapi/petstore
+    steps {
+        withCredentials([
+            string(credentialsId: 'accesskey-nessus', variable: 'ACCESS_KEY'),
+            string(credentialsId: 'secretkey-nessus', variable: 'SECRET_KEY')
+        ]) {
+            sh '''
+            # Stop petstore nếu có
+            docker rm -f petstore || true
 
-                    # Chạy Nessus WAS Scanner
-                    docker rm -f nessus-was || true
-                    docker run --name nessus-was --rm \
-                        -v ${WORKSPACE}:/scanner \
-                        -e WAS_MODE=cicd \
-                        -e ACCESS_KEY=$ACCESS_KEY \
-                        -e SECRET_KEY=$SECRET_KEY \
-                        tenable/was-scanner:latest \
-                        > ${WORKSPACE}/scanner.log 2>&1 || true
-                    '''
-                }
-            }
+            # Stop container Nessus cũ nếu có
+            docker rm -f nessus-was || true
+
+            # Chạy Nessus WAS Scanner scan target thực tế
+            docker run --name nessus-was --rm \
+                -v ${WORKSPACE}:/scanner \
+                -e WAS_MODE=cicd \
+                -e ACCESS_KEY=$ACCESS_KEY \
+                -e SECRET_KEY=$SECRET_KEY \
+                -e WAS_TARGET_URL=http://34.194.113.231:30080/ \
+                -e WAS_OUTPUT=/scanner/tenable_was_scan.html \
+                tenable/was-scanner:latest \
+                > ${WORKSPACE}/scanner.log 2>&1 || true
+            '''
         }
+    }
+}
     
     
     
