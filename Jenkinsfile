@@ -117,7 +117,8 @@ pipeline {
                 -e WAS_OUTPUT=/scanner/tenable_was_scan.html \
                 tenable/was-scanner:latest > ${WORKSPACE}/scanner.log 2>&1
 
-            
+            echo "[INFO] Scanner log:"
+            cat ${WORKSPACE}/scanner.log || true
             ls -lh ${WORKSPACE}/tenable_was_scan.html || true
             '''
         }
