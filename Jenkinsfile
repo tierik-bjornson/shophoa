@@ -5,7 +5,8 @@ pipeline {
         DOCKERHUB_CREDENTIALS = 'dockerhub-credentials'  
         IMAGE_NAME = 'tien2k3/shophoa' 
         IMAGE_TAG = "latest"
-
+        ACCESS_KEY = credentials('accesskey-nessus')
+        SECRET_KEY = credentials('secretkey-nessus')
     
 
       
@@ -97,6 +98,24 @@ pipeline {
                 }
             }
         }
+    stage('Run Nessus WAS Scan') {
+            steps {
+                sh '''
+                # Pull và chạy app target (Petstore)
+                docker pull swaggerapi/petstore
+                docker run -d --name petstore -e SWAGGER_URL=http://petstore:8080 -e SWAGGER_BASE_PATH=/v2 swaggerapi/petstore
+
+                # Pull và chạy Nessus WAS Scanner
+                docker pull tenable/was-scanner:latest
+                docker run -v $(pwd):/scanner -t \
+                    -e WAS_MODE=cicd \
+                    -e ACCESS_KEY=${ACCESS_KEY} \
+                    -e SECRET_KEY=${SECRET_KEY} \
+                    --link petstore \
+                    tenable/was-scanner:latest
+                '''
+            }
+        }
     
     
     
@@ -116,6 +135,16 @@ pipeline {
 
     post {
         always {
+            sh '''
+            docker rm $(docker stop $(docker ps -a -q --filter ancestor="tenable/was-scanner:latest" --format="{{.ID}}")) || true
+            docker rm $(docker stop $(docker ps -a -q --filter ancestor="swaggerapi/petstore" --format="{{.ID}}")) || true
+            docker system prune -f --volumes
+            '''
+            
+            archiveArtifacts 'scanner.log'
+            publishHTML([allowMissing: false, alwaysLinkToLastBuild: false, keepAll: true, reportDir: '', reportFiles: 'tenable_was_scan.html', reportName: 'WAS Report'])
+            
+
             cleanWs()
         }
     }
