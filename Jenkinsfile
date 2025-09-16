@@ -51,29 +51,33 @@ pipeline {
         }
 
         stage('Run Nessus WAS Scan') {
-            steps {
-                withCredentials([
-                    string(credentialsId: 'accesskey-nessus', variable: 'ACCESS_KEY'),
-                    string(credentialsId: 'secretkey-nessus', variable: 'SECRET_KEY')
-                ]) {
-                    sh '''
-                    docker rm -f nessus-was || true
-                    docker run --name nessus-was \
-                        -v ${WORKSPACE}:/scanner \
-                        -e WAS_MODE=cicd \
-                        -e ACCESS_KEY=$ACCESS_KEY \
-                        -e SECRET_KEY=$SECRET_KEY \
-                        -e WAS_TARGET_URL=http://34.194.113.231:30080/ \
-                        -e WAS_OUTPUT=/scanner/tenable_was_scan.html \
-                        tenable/was-scanner:latest > ${WORKSPACE}/scanner.log 2>&1
+    steps {
+        script {
+            // Tạo thư mục scanner trong workspace
+            sh "mkdir -p ${WORKSPACE}/scanner && chmod -R 777 ${WORKSPACE}/scanner"
 
-                    echo "[INFO] Scanner log:"
-                    cat ${WORKSPACE}/scanner.log || true
-                    ls -lh ${WORKSPACE}/tenable_was_scan.html || true
-                    '''
-                }
+            withCredentials([
+                string(credentialsId: 'accesskey-nessus', variable: 'ACCESS_KEY'),
+                string(credentialsId: 'secretkey-nessus', variable: 'SECRET_KEY')
+            ]) {
+                sh """
+                docker rm -f nessus-was || true
+                docker run --name nessus-was \\
+                    -v ${WORKSPACE}/scanner:/scanner \\
+                    -e WAS_MODE=cicd \\
+                    -e ACCESS_KEY=$ACCESS_KEY \\
+                    -e SECRET_KEY=$SECRET_KEY \\
+                    -e WAS_TARGET_URL=http://34.194.113.231:30080/ \\
+                    -e WAS_OUTPUT=/scanner/tenable_was_scan.html \\
+                    tenable/was-scanner:latest > ${WORKSPACE}/scanner/scanner.log 2>&1
+
+                cat ${WORKSPACE}/scanner/scanner.log || true
+                ls -lh ${WORKSPACE}/scanner/tenable_was_scan.html || true
+                """
             }
         }
+    }
+}
     }
 
     post {
