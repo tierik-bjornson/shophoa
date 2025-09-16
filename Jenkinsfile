@@ -98,17 +98,18 @@ pipeline {
                 }
             }
         }
-    steps {
+    stage('Run Nessus WAS Scan') {
+            steps {
                 withCredentials([
                     string(credentialsId: 'accesskey-nessus', variable: 'ACCESS_KEY'),
                     string(credentialsId: 'secretkey-nessus', variable: 'SECRET_KEY')
                 ]) {
                     sh '''
-                   
+                    # Chạy Petstore làm target test
                     docker rm -f petstore || true
                     docker run -d --name petstore -p 8080:8080 swaggerapi/petstore
 
-               
+                    # Chạy Nessus WAS Scanner
                     docker rm -f nessus-was || true
                     docker run --name nessus-was --rm \
                         -v $(pwd):/scanner \
@@ -119,8 +120,7 @@ pipeline {
                     '''
                 }
             }
-    
-    
+        }
     
     
     
