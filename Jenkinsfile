@@ -99,7 +99,7 @@ pipeline {
                 reportName: 'WAS Report'
             ])
 
-            cleanWs()
+            // cleanWs()
         }
     }
 }
