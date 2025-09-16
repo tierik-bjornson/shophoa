@@ -98,6 +98,7 @@ pipeline {
                 }
             }
         }
+    
     stage('Run Nessus WAS Scan') {
     steps {
         withCredentials([
@@ -105,26 +106,24 @@ pipeline {
             string(credentialsId: 'secretkey-nessus', variable: 'SECRET_KEY')
         ]) {
             sh '''
-            # Stop petstore nếu có
-            docker rm -f petstore || true
-
-            # Stop container Nessus cũ nếu có
+           
             docker rm -f nessus-was || true
-
-            # Chạy Nessus WAS Scanner scan target thực tế
-            docker run --name nessus-was --rm \
+            docker run --name nessus-was \
                 -v ${WORKSPACE}:/scanner \
                 -e WAS_MODE=cicd \
                 -e ACCESS_KEY=$ACCESS_KEY \
                 -e SECRET_KEY=$SECRET_KEY \
                 -e WAS_TARGET_URL=http://34.194.113.231:30080/ \
                 -e WAS_OUTPUT=/scanner/tenable_was_scan.html \
-                tenable/was-scanner:latest \
-                > ${WORKSPACE}/scanner.log 2>&1 || true
+                tenable/was-scanner:latest > ${WORKSPACE}/scanner.log 2>&1
+
+            
+            ls -lh ${WORKSPACE}/tenable_was_scan.html || true
             '''
         }
     }
 }
+
     
     
     
@@ -142,25 +141,16 @@ pipeline {
 
     post {
         always {
-            script {
-                sh '''
-                docker rm -f petstore || true
-                docker rm -f nessus-was || true
-                docker system prune -f --volumes
-                '''
-            }
+             archiveArtifacts artifacts: '*.log', allowEmptyArchive: true
+             archiveArtifacts artifacts: 'tenable_was_scan.html', allowEmptyArchive: true
 
-            archiveArtifacts artifacts: 'scanner.log', allowEmptyArchive: true
-
-            publishHTML(target: [
-                allowMissing: true,
-                alwaysLinkToLastBuild: false,
-                keepAll: true,
-                reportDir: '.',
-                reportFiles: 'tenable_was_scan.html',
-                reportName: 'WAS Report'
+             publishHTML(target: [
+               allowMissing: true,
+               keepAll: true,
+               reportDir: '.',
+               reportFiles: 'tenable_was_scan.html',
+              reportName: 'WAS Report'
             ])
-
             
 
             cleanWs()
