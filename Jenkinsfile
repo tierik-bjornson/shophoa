@@ -7,6 +7,7 @@ pipeline {
         IMAGE_TAG = "latest"
         ACCESS_KEY = credentials('accesskey-nessus')
         SECRET_KEY = credentials('secretkey-nessus')
+        NESSUS_SCRIPT = "/home/ubuntu/jenkins_scripts/nessus_scan.py"
     }
 
     stages {
@@ -44,62 +45,44 @@ pipeline {
             }
         }
 
-        stage('Run Acunetix Scan') {
+        // stage('Run Acunetix Scan') {
+        //     steps {
+        //         build job: 'acunetix-scan', wait: true
+        //     }
+        // }
+
+        stage('Run Nessus Scan') {
             steps {
-                build job: 'acunetix-scan', wait: true
+                echo "Starting Nessus scan..."
+               
+                sh "python3 ${NESSUS_SCRIPT}"
             }
         }
 
-        stage('Run Nessus WAS Scan') {
+        stage('Publish Nessus Report') {
             steps {
-                script {
-                
-                    sh "mkdir -p ${WORKSPACE}/scanner && chmod -R 777 ${WORKSPACE}/scanner"
-
-                
-                    withCredentials([
-                        string(credentialsId: 'accesskey-nessus', variable: 'ACCESS_KEY'),
-                        string(credentialsId: 'secretkey-nessus', variable: 'SECRET_KEY')
-                    ]) {
-                      
-                        def status = sh(script: """
-                            docker rm -f nessus-was || true
-                            docker run --name nessus-was \\
-                                -v ${WORKSPACE}/scanner:/scanner \\
-                                -e WAS_MODE=cicd \\
-                                -e ACCESS_KEY=\$ACCESS_KEY \\
-                                -e SECRET_KEY=\$SECRET_KEY \\
-                                -e WAS_TARGET_URL=http://34.194.113.231:30080/ \\
-                                -e WAS_OUTPUT=/scanner/tenable_was_scan.html \\
-                                tenable/was-scanner:latest > ${WORKSPACE}/scanner/scanner.log 2>&1
-                        """, returnStatus: true)
-
-                        echo "[INFO] Nessus WAS scan finished with exit code: ${status}"
-                        sh "cat ${WORKSPACE}/scanner/scanner.log || true"
-                        sh "ls -lh ${WORKSPACE}/scanner/tenable_was_scan.html || true"
-                    }
-                }
+                echo "Publishing Nessus HTML report..."
+                publishHTML(target: [
+                    allowMissing: false,
+                    alwaysLinkToLastBuild: true,
+                    keepAll: true,
+                    reportDir: '/home/ubuntu/jenkins_scripts',
+                    reportFiles: 'nessus_report.html',
+                    reportName: 'Nessus Scan Report'
+                ])
             }
         }
+
+        
+        
     }
 
     post {
         always {
            
-            archiveArtifacts artifacts: 'scanner/scanner.log', allowEmptyArchive: true
-            archiveArtifacts artifacts: 'scanner/tenable_was_scan.html', allowEmptyArchive: true
+           
 
-            
-            publishHTML(target: [
-                allowMissing: true,
-                alwaysLinkToLastBuild: true,
-                keepAll: true,
-                reportDir: 'scanner',
-                reportFiles: 'tenable_was_scan.html',
-                reportName: 'WAS Report'
-            ])
-
-            // cleanWs()
+            cleanWs()
         }
     }
 }
