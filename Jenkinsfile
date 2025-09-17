@@ -50,27 +50,18 @@ pipeline {
         //     }
         // }
 
-        stage('Run Nessus Scan') {
+         stage('Trigger Nessus Scan') {
             steps {
-                echo "Starting Nessus scan..."
-               
-                sh "python3 ${NESSUS_SCRIPT}"
+                /
+                sh 'bash /scripts/run_nessus_scan.sh'
             }
         }
-
-        stage('Publish Nessus Report') {
+        stage('Archive Nessus Report') {
             steps {
-                echo "Publishing Nessus HTML report..."
-                publishHTML(target: [
-                    allowMissing: false,
-                    alwaysLinkToLastBuild: true,
-                    keepAll: true,
-                    reportDir: '/scripts',
-                    reportFiles: 'nessus_report.html',
-                    reportName: 'Nessus Scan Report'
-                ])
+                
+                archiveArtifacts artifacts: 'nessus_report.html', fingerprint: true
             }
-        }
+        
 
         
         
@@ -78,7 +69,12 @@ pipeline {
 
     post {
         always {
-           
+            failure {
+            echo "Pipeline failed due to High/Critical vulnerabilities!"
+        }
+        success {
+            echo "Pipeline completed successfully, no High/Critical vulnerabilities found."
+        }
            
 
             cleanWs()
