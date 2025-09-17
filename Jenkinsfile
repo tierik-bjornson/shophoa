@@ -5,8 +5,7 @@ pipeline {
         DOCKERHUB_CREDENTIALS = 'dockerhub-credentials'
         IMAGE_NAME = 'tien2k3/shophoa'
         IMAGE_TAG = "latest"
-        
-        NESSUS_SCRIPT = "/scripts/nessus_scan.py"
+        NESSUS_SCRIPT = "/scripts/nessus_scan_run.sh"
     }
 
     stages {
@@ -44,41 +43,28 @@ pipeline {
             }
         }
 
-        // stage('Run Acunetix Scan') {
-        //     steps {
-        //         build job: 'acunetix-scan', wait: true
-        //     }
-        // }
-
-         stage('Trigger Nessus Scan') {
+        stage('Trigger Nessus Scan') {
             steps {
-                
-                sh 'bash /scripts/run_nessus_scan.sh'
+                sh 'bash /scripts/nessus_scan_run.sh'
             }
         }
+
         stage('Archive Nessus Report') {
             steps {
-                
                 archiveArtifacts artifacts: 'nessus_report.html', fingerprint: true
             }
-        
-
-        
-        
+        }
     }
 
     post {
         always {
-            failure {
+            cleanWs()
+        }
+        failure {
             echo "Pipeline failed due to High/Critical vulnerabilities!"
         }
         success {
             echo "Pipeline completed successfully, no High/Critical vulnerabilities found."
         }
-           
-
-            cleanWs()
-        }
     }
-}
 }
