@@ -6,7 +6,7 @@ pipeline {
         IMAGE_NAME = 'tien2k3/shophoa'
         IMAGE_TAG = "latest"
         
-        NESSUS_SCRIPT = "/home/ubuntu/jenkins_scripts/nessus_scan.py"
+        NESSUS_SCRIPT = "/scripts/nessus_scan.py"
     }
 
     stages {
@@ -65,7 +65,7 @@ pipeline {
                     allowMissing: false,
                     alwaysLinkToLastBuild: true,
                     keepAll: true,
-                    reportDir: '/home/ubuntu/jenkins_scripts',
+                    reportDir: '/scripts',
                     reportFiles: 'nessus_report.html',
                     reportName: 'Nessus Scan Report'
                 ])
