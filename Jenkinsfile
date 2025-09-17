@@ -5,8 +5,7 @@ pipeline {
         DOCKERHUB_CREDENTIALS = 'dockerhub-credentials'
         IMAGE_NAME = 'tien2k3/shophoa'
         IMAGE_TAG = "latest"
-        ACCESS_KEY = credentials('accesskey-nessus')
-        SECRET_KEY = credentials('secretkey-nessus')
+        
         NESSUS_SCRIPT = "/home/ubuntu/jenkins_scripts/nessus_scan.py"
     }
 
