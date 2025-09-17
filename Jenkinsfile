@@ -52,7 +52,7 @@ pipeline {
 
          stage('Trigger Nessus Scan') {
             steps {
-                /
+                
                 sh 'bash /scripts/run_nessus_scan.sh'
             }
         }
