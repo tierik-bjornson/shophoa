@@ -43,9 +43,16 @@ pipeline {
             }
         }
 
-        stage('Run Acunetix Scan') {
+        // stage('Run Acunetix Scan') {
+        //     steps {
+        //         build job: 'acunetix-scan', wait: true
+        //     }
+        // }
+
+        stage('Run Acunetix Scan & Export PDF') {
             steps {
-                build job: 'acunetix-scan', wait: true
+                
+                sh 'bash /scripts/acunetix_report.sh'
             }
         }
 
@@ -55,9 +62,10 @@ pipeline {
             }
         }
 
-        stage('Archive Nessus Report') {
+        stage('Archive Reports') {
             steps {
-                archiveArtifacts artifacts: 'nessus_report.html', fingerprint: true
+                // Archive cả Nessus HTML và Acunetix PDF
+                archiveArtifacts artifacts: 'nessus_report.html, acunetix_report.pdf', fingerprint: true
             }
         }
     }
