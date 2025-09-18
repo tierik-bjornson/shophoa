@@ -43,6 +43,12 @@ pipeline {
             }
         }
 
+        stage('Run Acunetix Scan') {
+            steps {
+                build job: 'acunetix-scan', wait: true
+            }
+        }
+
         stage('Trigger Nessus Scan') {
             steps {
                 sh 'bash /scripts/nessus_scan_run.sh'
